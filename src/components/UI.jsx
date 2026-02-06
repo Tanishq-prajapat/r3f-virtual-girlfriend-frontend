@@ -3,7 +3,8 @@ import { useChat } from "../hooks/useChat";
 
 export const UI = ({ hidden, ...props }) => {
   const input = useRef();
-  const { chat, loading, cameraZoomed, setCameraZoomed, message } = useChat();
+  const { chat, loading, cameraZoomed, setCameraZoomed, message, error } =
+    useChat();
 
   const sendMessage = () => {
     const text = input.current.value;
@@ -107,6 +108,11 @@ export const UI = ({ hidden, ...props }) => {
             Send
           </button>
         </div>
+        {error ? (
+          <div className="pointer-events-auto max-w-screen-sm w-full mx-auto text-red-700 bg-white bg-opacity-70 backdrop-blur-md p-3 rounded-md text-sm">
+            {error}
+          </div>
+        ) : null}
       </div>
     </>
   );

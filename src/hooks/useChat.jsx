@@ -7,20 +7,36 @@ const ChatContext = createContext();
 export const ChatProvider = ({ children }) => {
   const chat = async (message) => {
     setLoading(true);
-    const data = await fetch(`${backendUrl}/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message }),
-    });
-    const resp = (await data.json()).messages;
-    setMessages((messages) => [...messages, ...resp]);
-    setLoading(false);
+    setError(null);
+    try {
+      const data = await fetch(`${backendUrl}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!data.ok) {
+        throw new Error(`Backend error: ${data.status}`);
+      }
+
+      const json = await data.json();
+      if (!json?.messages || !Array.isArray(json.messages)) {
+        throw new Error("Invalid backend response");
+      }
+      setMessages((messages) => [...messages, ...json.messages]);
+    } catch (error) {
+      console.error(error);
+      setError(error.message || "Request failed");
+    } finally {
+      setLoading(false);
+    }
   };
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [cameraZoomed, setCameraZoomed] = useState(true);
   const onMessagePlayed = () => {
     setMessages((messages) => messages.slice(1));
@@ -41,6 +57,7 @@ export const ChatProvider = ({ children }) => {
         message,
         onMessagePlayed,
         loading,
+        error,
         cameraZoomed,
         setCameraZoomed,
       }}
